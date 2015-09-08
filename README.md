@@ -50,3 +50,13 @@ You can now in available!! if you send an HTTP request as follows:
 ```console
 $ curl -X POST https://your-app-name.herokuapp.com/SECRET_TOKEN/api/myroom/tv_on
 ```
+
+Author
+------
+
+[@yukung](https://twitter.com/yukung)
+
+License
+-------
+
+Licensed under the terms of the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.html)
