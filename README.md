@@ -1,48 +1,52 @@
-Ratpack project template
------------------------------
+IRKit API Server for Groovy
+===========================
 
-You have just created a basic Groovy Ratpack application. It doesn't do much
-at this point, but we have set you up with a standard project structure, a 
-Guice back Registry, simple home page, and Spock for writing tests (because 
-you'd be mad not to use it).
+Description
+-----------
 
-In this project you get:
+This is the API server for sharing IR data of IRKit. I made by being inspired by [riywo/irkit-api-server](https://github.com/riywo/irkit-api-server).
 
-* A Gradle build file with pre-built Gradle wrapper
-* A tiny home page at src/ratpack/templates/index.html (it's a template)
-* A routing file at src/ratpack/Ratpack.groovy
-* Reloading enabled in build.gradle
-* A standard project structure:
+Usage
+-----
 
-    <proj>
-      |
-      +- src
-          |
-          +- ratpack
-          |     |
-          |     +- Ratpack.groovy
-          |     +- ratpack.properties
-          |     +- public // Static assets in here
-          |          |
-          |          +- images
-          |          +- lib
-          |          +- scripts
-          |          +- styles
-          |
-          +- main
-          |   |
-          |   +- groovy
-                   |
-                   +- // App classes in here!
-          |
-          +- test
-              |
-              +- groovy
-                   |
-                   +- // Spock tests in here!
+You can use the following procedure.
 
-That's it! You can start the basic app with
+1. Create IR data file(`irkit.json`)
+2. Upload the IR data somewhere else.
+3. Deploy API server.
 
-    ./gradlew run
+### Create IR data
 
-but it's up to you to add the bells, whistles, and meat of the application.
+Please use it to deploy to any environment which is running Java such as Heroku. Before deploying, please the IR data file created using the [`girkit CLI`](https://github.com/yukung/girkit).
+
+As below:
+
+```shell-session
+$ girkit --get tv_on
+$ girkit --get tv_off
+$ girkit --get airconditioner_on
+$ girkit --get airconditioner_off
+$ girkit --device:add myroom
+$ ls ~/.irkit.json
+/Users/yukung/.irkit.json
+```
+
+#### Compatibility
+
+For IR Data files(`irkit.json`) that have it compatible with output from the `ruby-irkit`, it does not matter with a `ruby-irkit`.
+
+### Upload IR data
+
+You need to server the public accessible web server `irkit.json`. because it contains some private information to `irkit.json`, please be placed in hard to guess the location. Such as Private Gist and Dropbox share link would be better.
+
+### Deploy API server
+
+You can deploy via Heroku deploy button. You need to specify the URL that was arranged `irkit.json` the `IRKIT_DATA_FILE`in deployment screen of Heroku.
+
+After you deploy, please check the `SECRET_TOKEN` of environment variable. Access destination of the URL is confirmed.
+
+You can now in available!! if you send an HTTP request as follows:
+
+```console
+$ curl -X POST https://your-app-name.herokuapp.com/SECRET_TOKEN/api/myroom/tv_on
+```
