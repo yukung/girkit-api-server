@@ -1,3 +1,8 @@
+import ch.qos.logback.classic.encoder.PatternLayoutEncoder
+import ch.qos.logback.core.ConsoleAppender
+
+import java.nio.charset.Charset
+
 /*
  * Copyright 2015 Yusuke Ikeda
  *
@@ -14,23 +19,11 @@
  * limitations under the License.
  */
 
-plugins {
-    id "io.ratpack.ratpack-groovy" version "1.0.0-rc-3"
-    id "com.github.johnrengelman.shadow" version "1.2.2"
-    id "idea"
-    id "eclipse"
-}
-
-repositories {
-    jcenter()
-}
-
-dependencies {
-    compile("org.yukung:girkit:0.2.1") {
-        exclude module: 'commons-logging'
+appender('CONSOLE', ConsoleAppender) {
+    encoder(PatternLayoutEncoder) {
+        charset = Charset.forName('UTF-8')
+        pattern = '%date [%highlight(%-5level)] [%thread] [%cyan(%logger{32})] - %message%n'
     }
-    compile "org.slf4j:jcl-over-slf4j:1.7.12"
-    compile "ch.qos.logback:logback-classic:1.1.3"
-
-    testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
 }
+
+root INFO, ['CONSOLE']

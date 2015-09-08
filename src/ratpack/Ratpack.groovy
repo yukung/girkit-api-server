@@ -14,21 +14,43 @@
  * limitations under the License.
  */
 
-import ratpack.groovy.template.MarkupTemplateModule
+import org.apache.commons.lang.RandomStringUtils
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.yukung.girkit.App
+import org.yukung.girkit.InternetAPI
+import ratpack.exec.Blocking
 
-import static ratpack.groovy.Groovy.groovyMarkupTemplate
 import static ratpack.groovy.Groovy.ratpack
 
-ratpack {
-  bindings {
-    module MarkupTemplateModule
-  }
+final Logger log = LoggerFactory.getLogger(Ratpack)
 
-  handlers {
-    get {
-      render groovyMarkupTemplate("index.gtpl", title: "My Ratpack App")
+ratpack {
+    bindings {
     }
 
-    files { dir "public" }
-  }
+    handlers {
+        def token = System.env.SECRET_TOKEN ?: RandomStringUtils.randomAlphanumeric(32)
+        log.info("URL path token : {}", token)
+        prefix(token) {
+            post("api/:device/:commands") {
+                def device = pathTokens['device']
+                def info = App.data['Device'][device]
+                def irkit = new InternetAPI(clientKey: info.clientkey, deviceId: info.deviceid)
+
+                def commands = pathTokens['commands'].split(',')
+                commands.eachWithIndex { command, i ->
+                    def irData = App.data['IR'][command]
+                    def res = irkit.postMessages(irData)
+                    if (res.status == 200) {
+                        context.response.send "Success: ${command} to ${device}"
+                    } else {
+                        clientError(400)
+                    }
+
+                    if (i < commands.size() - 1) Blocking.exec { sleep 1000 }
+                }
+            }
+        }
+    }
 }
