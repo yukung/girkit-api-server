@@ -32,8 +32,13 @@ ratpack {
     handlers {
         def token = System.env.SECRET_TOKEN ?: RandomStringUtils.randomAlphanumeric(32)
         log.info("URL path token : {}", token)
-        prefix(token) {
-            post("api/:device/:commands") {
+
+        prefix("${token}/api") {
+            all {
+                context.response.headers.add 'Access-Control-Allow-Origin', '*'
+                next()
+            }
+            post(":device/:commands") {
                 def device = pathTokens['device']
                 def info = App.data['Device'][device]
                 def irkit = new InternetAPI(clientKey: info.clientkey, deviceId: info.deviceid)
