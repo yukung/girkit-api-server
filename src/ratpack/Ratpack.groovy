@@ -16,13 +16,13 @@
 
 
 import org.apache.commons.lang.RandomStringUtils
+import org.codehaus.groovy.runtime.StackTraceUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.yukung.girkit.App
 import org.yukung.girkit.InternetAPI
 import ratpack.error.ClientErrorHandler
 import ratpack.error.ServerErrorHandler
-import ratpack.exec.Blocking
 import ratpack.handling.Context
 
 import static ratpack.groovy.Groovy.ratpack
@@ -41,8 +41,12 @@ ratpack {
         bindInstance ServerErrorHandler, new ServerErrorHandler() {
             @Override
             void error(Context context, Throwable throwable) throws Exception {
-                log.warn "status: ${context.response.status}, method: ${context.request.method}, path: ${context.request.path}", throwable
-                context.response.status(500).send("Error: ${throwable.message}")
+                log.warn("status: ${context.response.status}, method: ${context.request.method}, path: ${context.request.path}",
+                        StackTraceUtils.deepSanitize(throwable)
+                )
+                context.response.status(500).send(
+                        "Error: ${throwable.message}, IRKit response: ${throwable.response.status} ${throwable.response.data}"
+                )
             }
         }
     }
@@ -60,17 +64,19 @@ ratpack {
                 def device = pathTokens['device']
                 def info = App.data['Device'][device]
                 def irkit = new InternetAPI(clientKey: info.clientkey, deviceId: info.deviceid)
-
                 def commands = pathTokens['commands'].split(',')
+                def successes = []
+
                 commands.eachWithIndex { command, i ->
                     def irData = App.data['IR'][command]
                     def res = irkit.postMessages(irData)
                     if (res.status == 200) {
                         log.info "Success: ${command} to ${device}"
+                        successes << command
                     }
-
-                    if (i < commands.size() - 1) Blocking.exec { sleep 1000 }
+                    if (i < commands.size() - 1) sleep 1000
                 }
+                context.response.send("successful commands: ${successes.join(',')}")
             }
         }
     }
