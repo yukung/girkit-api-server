@@ -1,8 +1,3 @@
-import ch.qos.logback.classic.encoder.PatternLayoutEncoder
-import ch.qos.logback.core.ConsoleAppender
-
-import java.nio.charset.Charset
-
 /*
  * Copyright 2015 Yusuke Ikeda
  *
@@ -18,6 +13,11 @@ import java.nio.charset.Charset
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import ch.qos.logback.classic.encoder.PatternLayoutEncoder
+import ch.qos.logback.core.ConsoleAppender
+
+import java.nio.charset.Charset
 
 appender('CONSOLE', ConsoleAppender) {
     encoder(PatternLayoutEncoder) {
