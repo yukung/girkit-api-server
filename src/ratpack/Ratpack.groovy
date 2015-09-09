@@ -66,9 +66,7 @@ ratpack {
                     def irData = App.data['IR'][command]
                     def res = irkit.postMessages(irData)
                     if (res.status == 200) {
-                        context.response.send "Success: ${command} to ${device}"
-                    } else {
-                        clientError(400)
+                        log.info "Success: ${command} to ${device}"
                     }
 
                     if (i < commands.size() - 1) Blocking.exec { sleep 1000 }
