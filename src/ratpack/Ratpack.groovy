@@ -23,7 +23,6 @@ import org.yukung.girkit.App
 import org.yukung.girkit.InternetAPI
 import ratpack.error.ClientErrorHandler
 import ratpack.error.ServerErrorHandler
-import ratpack.handling.Context
 
 import static ratpack.groovy.Groovy.ratpack
 
@@ -31,29 +30,24 @@ final Logger log = LoggerFactory.getLogger(Ratpack)
 
 ratpack {
     bindings {
-        bindInstance ClientErrorHandler, new ClientErrorHandler() {
-            @Override
-            void error(Context context, int statusCode) throws Exception {
-                log.warn "status: ${statusCode}, method: ${context.request.method}, path: ${context.request.path}"
-                context.response.status(statusCode).send "${context.response.status.message}"
-            }
-        }
-        bindInstance ServerErrorHandler, new ServerErrorHandler() {
-            @Override
-            void error(Context context, Throwable throwable) throws Exception {
-                log.warn("status: ${context.response.status}, method: ${context.request.method}, path: ${context.request.path}",
-                        StackTraceUtils.deepSanitize(throwable)
-                )
-                context.response.status(500).send(
-                        "Error: ${throwable.message}, IRKit response: ${throwable.response.status} ${throwable.response.data}"
-                )
-            }
-        }
+        bindInstance ClientErrorHandler, { context, statusCode ->
+            log.warn "status: ${statusCode}, method: ${context.request.method}, path: ${context.request.path}"
+            context.response.status(statusCode).send "${context.response.status.message}"
+        } as ClientErrorHandler
+
+        bindInstance ServerErrorHandler, { context, throwable ->
+            log.warn("status: ${context.response.status}, method: ${context.request.method}, path: ${context.request.path}",
+                    StackTraceUtils.deepSanitize(throwable)
+            )
+            context.response.status(500).send(
+                    "Error: ${throwable.message}, IRKit response: ${throwable.response.status} ${throwable.response.data}"
+            )
+        } as ServerErrorHandler
     }
 
     handlers {
         def token = System.env.SECRET_TOKEN ?: RandomStringUtils.randomAlphanumeric(32)
-        log.info("URL path token : {}", token)
+        log.info("URL path token : ${token}")
 
         prefix("${token}/api") {
             all {
