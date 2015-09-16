@@ -36,7 +36,7 @@ ratpack {
         } as ClientErrorHandler
 
         bindInstance ServerErrorHandler, { context, throwable ->
-            log.warn("status: ${context.response.status}, method: ${context.request.method}, path: ${context.request.path}",
+            log.error("status: ${context.response.status}, method: ${context.request.method}, path: ${context.request.path}",
                     StackTraceUtils.deepSanitize(throwable)
             )
             context.response.status(500).send(
