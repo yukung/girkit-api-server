@@ -1,10 +1,12 @@
 IRKit API Server for Groovy
 ===========================
 
+[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
+
 Description
 -----------
 
-This is the API server for sharing IR data of IRKit. I made by being inspired by [riywo/irkit-api-server](https://github.com/riywo/irkit-api-server).
+This is the API server for sharing IR data of IRKit.
 
 Usage
 -----
