@@ -15,7 +15,7 @@
  */
 
 
-import org.apache.commons.lang.RandomStringUtils
+import org.apache.commons.lang3.RandomStringUtils
 import org.codehaus.groovy.runtime.StackTraceUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -64,7 +64,7 @@ ratpack {
                 commands.eachWithIndex { command, i ->
                     def irData = App.data['IR'][command]
                     def res = irkit.postMessages(irData)
-                    if (res.status == 200) {
+                    if (res.statusCode == 200) {
                         log.info "Success: ${command} to ${device}"
                         successes << command
                     }
