@@ -23,6 +23,7 @@ plugins {
 
 repositories {
     jcenter()
+    mavenCentral()
 }
 
 dependencies {
@@ -32,6 +33,7 @@ dependencies {
     compile "org.slf4j:jcl-over-slf4j:1.7.12"
     compile "ch.qos.logback:logback-classic:1.1.3"
     compile "org.apache.commons:commons-lang3:3.4"
+    compile "com.github.seratch:jslack:1.0.20"   
 
     testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
 }
