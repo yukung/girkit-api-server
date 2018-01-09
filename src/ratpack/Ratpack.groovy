@@ -24,7 +24,7 @@ import org.yukung.girkit.InternetAPI
 import ratpack.error.ClientErrorHandler
 import ratpack.error.ServerErrorHandler
 
-import static ratpack.groovy.Groovy.ratpack
+import static ratpack.groovy.Groovy.*
 
 final Logger log = LoggerFactory.getLogger(Ratpack)
 
@@ -47,7 +47,7 @@ ratpack {
 
     handlers {
         def token = System.env.SECRET_TOKEN ?: RandomStringUtils.randomAlphanumeric(32)
-        log.info("URL path token : ${token}")
+        log.debug("URL path token : ${token}")
 
         prefix("${token}/api") {
             all {
