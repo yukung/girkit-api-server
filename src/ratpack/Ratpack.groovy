@@ -64,38 +64,41 @@ ratpack {
                 def info = App.data['Device'][device]
                 def irkit = new InternetAPI(clientKey: info.clientkey, deviceId: info.deviceid)
                 def commands = pathTokens['commands'].split(',')
-                def successes = []
-                def attachments = []
+                def (successes, attachments) = [[], []]
                 def webhookUrl = System.env.SLACK_WEBHOOK_URL
-                def payload = webhookUrl ? Payload.builder()
-                    .text("Sent the signal to the IRKit :on:") : null
 
                 commands.eachWithIndex { command, i ->
                     def irData = App.data['IR'][command]
-                    def res = irkit.postMessages(irData)
+                    def res = irkit.postMessages irData
                     if (res.statusCode == 200) {
                         log.info "Success: ${command} to ${device}"
-                        if (webhookUrl) {
-                            def attachment = Attachment.builder()
-                                .color("good")
-                                .mrkdwnIn(["text"])
-                                .authorName(device)
-                                .title("Command: ${command}")
-                                .text("The command [*${command}*] was successfully sent to IRKit :ok:")
-                                .footer("IRKit API Server")
-                                .ts("${ZonedDateTime.now().toInstant().toEpochMilli() / 1000}")
-                                .build()
-                            attachments << attachment
-                        }
+                        if (webhookUrl) attachments << attachment(device, command)
                         successes << command
                     }
                     if (i < commands.size() - 1) sleep 1000
                 }
-                if (webhookUrl) {
-                    Slack.getInstance().send(webhookUrl, payload.attachments(attachments).build())
-                }
-                context.response.send("successful commands: ${successes.join(',')}")
+                if (webhookUrl) Slack.getInstance().send webhookUrl, payload(attachments)
+                context.response.send "successful commands: ${successes.join(',')}"
             }
         }
     }
+}
+
+def payload(List attachments) {
+    Payload.builder()
+        .text("Sent the signal to the IRKit :on:")
+        .attachments(attachments)
+        .build()
+}
+
+def attachment(device, command) {
+    Attachment.builder()
+        .color("good")
+        .mrkdwnIn(["text"])
+        .authorName(device)
+        .title("Command: ${command}")
+        .text("The command [*${command}*] was successfully sent to IRKit :ok:")
+        .footer("IRKit API Server")
+        .ts("${ZonedDateTime.now().toInstant().toEpochMilli() / 1000}")
+        .build()
 }
