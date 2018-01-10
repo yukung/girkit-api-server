@@ -15,6 +15,9 @@
  */
 
 
+import com.github.seratch.jslack.Slack
+import com.github.seratch.jslack.api.model.Attachment
+import com.github.seratch.jslack.api.webhook.Payload
 import org.apache.commons.lang3.RandomStringUtils
 import org.codehaus.groovy.runtime.StackTraceUtils
 import org.slf4j.Logger
@@ -24,7 +27,9 @@ import org.yukung.girkit.InternetAPI
 import ratpack.error.ClientErrorHandler
 import ratpack.error.ServerErrorHandler
 
-import static ratpack.groovy.Groovy.ratpack
+import java.time.ZonedDateTime
+
+import static ratpack.groovy.Groovy.*
 
 final Logger log = LoggerFactory.getLogger(Ratpack)
 
@@ -37,17 +42,17 @@ ratpack {
 
         bindInstance ServerErrorHandler, { context, throwable ->
             log.error("status: ${context.response.status}, method: ${context.request.method}, path: ${context.request.path}",
-                    StackTraceUtils.deepSanitize(throwable)
+                StackTraceUtils.deepSanitize(throwable)
             )
             context.response.status(500).send(
-                    "Error: ${throwable.message}, IRKit response: ${throwable.response.status} ${throwable.response.data}"
+                "Error: ${throwable.message}, IRKit response: ${throwable.response.status} ${throwable.response.data}"
             )
         } as ServerErrorHandler
     }
 
     handlers {
         def token = System.env.SECRET_TOKEN ?: RandomStringUtils.randomAlphanumeric(32)
-        log.info("URL path token : ${token}")
+        log.debug("URL path token : ${token}")
 
         prefix("${token}/api") {
             all {
@@ -59,19 +64,41 @@ ratpack {
                 def info = App.data['Device'][device]
                 def irkit = new InternetAPI(clientKey: info.clientkey, deviceId: info.deviceid)
                 def commands = pathTokens['commands'].split(',')
-                def successes = []
+                def (successes, attachments) = [[], []]
+                def webhookUrl = System.env.SLACK_WEBHOOK_URL
 
                 commands.eachWithIndex { command, i ->
                     def irData = App.data['IR'][command]
-                    def res = irkit.postMessages(irData)
+                    def res = irkit.postMessages irData
                     if (res.statusCode == 200) {
                         log.info "Success: ${command} to ${device}"
+                        if (webhookUrl) attachments << attachment(device, command)
                         successes << command
                     }
                     if (i < commands.size() - 1) sleep 1000
                 }
-                context.response.send("successful commands: ${successes.join(',')}")
+                if (webhookUrl) Slack.getInstance().send webhookUrl, payload(attachments)
+                context.response.send "successful commands: ${successes.join(',')}"
             }
         }
     }
+}
+
+def payload(List attachments) {
+    Payload.builder()
+        .text("Sent the signal to the IRKit :on:")
+        .attachments(attachments)
+        .build()
+}
+
+def attachment(device, command) {
+    Attachment.builder()
+        .color("good")
+        .mrkdwnIn(["text"])
+        .authorName(device)
+        .title("Command: ${command}")
+        .text("The command [*${command}*] was successfully sent to IRKit :ok:")
+        .footer("IRKit API Server")
+        .ts("${ZonedDateTime.now().toInstant().toEpochMilli() / 1000}")
+        .build()
 }
