@@ -84,7 +84,7 @@ ratpack {
     }
 }
 
-def payload(List attachments) {
+def payload(attachments) {
     Payload.builder()
         .text("Sent the signal to the IRKit :on:")
         .attachments(attachments)
