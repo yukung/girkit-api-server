@@ -16,8 +16,6 @@
 
 
 import com.github.seratch.jslack.Slack
-import com.github.seratch.jslack.api.model.Attachment
-import com.github.seratch.jslack.api.webhook.Payload
 import org.apache.commons.lang3.RandomStringUtils
 import org.codehaus.groovy.runtime.StackTraceUtils
 import org.slf4j.Logger
@@ -29,8 +27,6 @@ import ratpack.error.ServerErrorHandler
 import ratpack.exec.Promise
 import ratpack.health.HealthCheck
 import ratpack.health.HealthCheckHandler
-
-import java.time.ZonedDateTime
 
 import static ratpack.groovy.Groovy.*
 
@@ -79,35 +75,16 @@ ratpack {
                     def res = irkit.postMessages irData
                     if (res.statusCode == 200) {
                         log.info "Success: ${command} to ${device}"
-                        if (webhookUrl) attachments << attachment(device, command)
+                        if (webhookUrl) attachments << MessageArranger.attachment(device, command)
                         successes << command
                     }
                     if (i < commands.size() - 1) sleep 1000
                 }
-                if (webhookUrl) Slack.getInstance().send webhookUrl, payload(attachments)
+                if (webhookUrl) Slack.getInstance().send webhookUrl, MessageArranger.payload(attachments)
                 context.response.send "successful commands: ${successes.join(',')}"
             }
         }
 
         get("health/:name?", new HealthCheckHandler())
     }
-}
-
-def payload(attachments) {
-    Payload.builder()
-        .text("Sent the signal to the IRKit :on:")
-        .attachments(attachments)
-        .build()
-}
-
-def attachment(device, command) {
-    Attachment.builder()
-        .color("good")
-        .mrkdwnIn(["text"])
-        .authorName(device)
-        .title("Command: ${command}")
-        .text("The command [*${command}*] was successfully sent to IRKit :ok:")
-        .footer("IRKit API Server")
-        .ts("${ZonedDateTime.now().toInstant().toEpochMilli() / 1000}")
-        .build()
 }
