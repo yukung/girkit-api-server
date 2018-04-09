@@ -26,6 +26,9 @@ import org.yukung.girkit.App
 import org.yukung.girkit.InternetAPI
 import ratpack.error.ClientErrorHandler
 import ratpack.error.ServerErrorHandler
+import ratpack.exec.Promise
+import ratpack.health.HealthCheck
+import ratpack.health.HealthCheckHandler
 
 import java.time.ZonedDateTime
 
@@ -48,6 +51,10 @@ ratpack {
                 "Error: ${throwable.message}, IRKit response: ${throwable.response.status} ${throwable.response.data}"
             )
         } as ServerErrorHandler
+
+        add HealthCheck.of('application') { registry ->
+            Promise.value(HealthCheck.Result.healthy('UP'))
+        }
     }
 
     handlers {
@@ -81,6 +88,8 @@ ratpack {
                 context.response.send "successful commands: ${successes.join(',')}"
             }
         }
+
+        get("health/:name?", new HealthCheckHandler())
     }
 }
 
