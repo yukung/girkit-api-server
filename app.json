@@ -9,7 +9,6 @@
   "repository": "https://github.com/yukung/girkit-api-server",
   "env": {
     "BUILDPACK_URL": "https://github.com/heroku/heroku-buildpack-multi.git",
-    "JAVA_OPTS": "-Xmx384m -Xss512k -XX:+UseCompressedOops",
     "IRKIT_DATA_FILE": {
       "description": "URL of your irkit.json. Private gist's raw URL is nice."
     },
